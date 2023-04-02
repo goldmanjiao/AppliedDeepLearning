@@ -112,8 +112,7 @@ def eval_model(model_path,device, testset):
 if __name__ == "__main__":
     model = Res_U_Net()
     #load in the model
-    path = 'model.pt'
-    paths = [path]
+    paths = ['model_k_0.1.pt','model_k_0.2.pt','model_k_0.3.pt','model_k_0.4.pt','model_k_0.5.pt','model_k_0.6.pt','model_k_0.7.pt','model_k_0.8.pt','model_k_0.9.pt','model_k_1.0.pt']
     ##load in the data - testing batches
 
     trainset, valset, testset = load_dataset()
