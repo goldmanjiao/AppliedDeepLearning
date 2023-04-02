@@ -84,7 +84,7 @@ class Res_U_Net(nn.Module):
     '''
     UNet-like model using residual blocks rather than standard convolutions.
     '''
-    def __init__(self, init_ch=64, out_ch=1, num_levels=4):
+    def __init__(self, init_ch=64, out_ch=3, num_levels=4):
         '''
         - inputs
         init_ch: number of channels at output of initial convolution layer

@@ -13,7 +13,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 # Computes DICE loss
-class DiceLoss(nn.Module):
+'''class DiceLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -24,7 +24,7 @@ class DiceLoss(nn.Module):
         union = y_pred.sum(dim=[2, 3]) + y_true.sum(dim=[2, 3])
         dice = (2 * intersection + smooth) / (union + smooth)
         loss = 1 - dice.mean()
-        return loss
+        return loss'''
 
 def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100, k=0.1, loss_threshold=0.001, patience=10, baseline_full = False):
     def device():
@@ -40,19 +40,19 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
     if baseline_full:
         k = 0
         k_pct = 'baseline_full'
-    k_pct = k
-    k = int(len(unlabelled_set)*k)
+    else:
+        k_pct = k
+        k = int(len(unlabelled_set)*k)
     
     device = device()
     model.to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
-    criterion = DiceLoss()
+    criterion = nn.CrossEntropyLoss()
     
     best_val_loss = float('inf')
     early_stop_counter = 0
 
-    
     unlabelled_loader = DataLoader(unlabelled_set, batch_size=batch_size, num_workers=0, pin_memory=False, shuffle=False)
     valloader = DataLoader(valset, batch_size=batch_size, num_workers=0, pin_memory=True, drop_last=True)
 
@@ -69,11 +69,10 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
         model.train()
         train_loss = 0.0
         for images, masks, labels in tqdm(trainloader):
-            
             images, masks, labels = images.to(device), masks.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
-            
+
             loss = criterion(outputs, masks)
             loss.backward()
             optimizer.step()
@@ -149,17 +148,17 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
                 confidences_argsort = torch.argsort(confidences)[:k]
                 subset_unlabelled = Subset(unlabelled_set, confidences_argsort)
 
-    return model
+    
 
 if __name__ == '__main__':
     trainset, valset, testset = load_dataset()
     trainset, valset, testset = trainset, valset, testset
     
-    len_labelled = int(0.8 * len(trainset))
+    len_labelled = int(0.5 * len(trainset))
     len_unlabelled = len(trainset) - len_labelled
-    labelledset, unlabelledset = random_split(trainset, [len_labelled, len_unlabelled], generator=torch.Generator().manual_seed(42))
-    train = train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0.2, loss_threshold=0.001, patience=10, baseline_full=True)
+    labelledset, unlabelledset, valset, _= random_split(trainset, [len_labelled, len_unlabelled], generator=torch.Generator().manual_seed(42))
+    train(trainset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0, loss_threshold=0.001, patience=10, baseline_full=True)
     
     for k in range(1,11):
-        train = train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=30,k=k/10, loss_threshold=0.001, patience=10)
+        train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=k/10, loss_threshold=0.001, patience=5)
   

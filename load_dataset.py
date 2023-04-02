@@ -40,10 +40,11 @@ def load_dataset():
         class_label, mask = targets
         
         # apply transforms to image
+        
         img = img_transform(img)
         all_img.append(img)
         # apply transforms to mask
-        mask = mask_transform(mask)
+        mask = mask_transform(mask).squeeze()
         all_mask.append(mask)
         # apply transforms to label
         all_label.append(class_label)
