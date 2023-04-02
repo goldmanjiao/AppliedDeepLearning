@@ -89,7 +89,7 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
                 loss = criterion(outputs, masks)
                 val_loss += loss.item() * images.size(0)
             val_loss /= len(valset)
-
+  
         if val_loss < best_val_loss - loss_threshold:
             best_val_loss = val_loss
             early_stop_counter = 0
@@ -156,8 +156,8 @@ if __name__ == '__main__':
     
     len_labelled = int(0.5 * len(trainset))
     len_unlabelled = len(trainset) - len_labelled
-    labelledset, unlabelledset, valset, _= random_split(trainset, [len_labelled, len_unlabelled], generator=torch.Generator().manual_seed(42))
-    train(trainset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0, loss_threshold=0.001, patience=10, baseline_full=True)
+    labelledset, unlabelledset, valset, _= random_split(trainset, [0.01, 0.01, 0.01, 0.97], generator=torch.Generator().manual_seed(42))
+    #train(trainset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0, loss_threshold=0.001, patience=10, baseline_full=True)
     
     for k in range(1,11):
         train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=k/10, loss_threshold=0.001, patience=5)

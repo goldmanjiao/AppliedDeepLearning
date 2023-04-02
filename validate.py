@@ -3,7 +3,7 @@ from network import Res_U_Net
 from load_dataset import load_dataset
 from torch.utils.data import TensorDataset, DataLoader, random_split
 from tqdm import tqdm
-
+from torchmetrics import Dice, JaccardIndex, Precision, Recall, F1Score
 #load in data
 
 
@@ -21,42 +21,35 @@ def device():
 
 
 ##function to calculate the dice score when given the predicted and ground truth masks
-def dice_score(pred, target,smooth=1.0):
+def dice_score(pred, target):
     """
     Calculates the Dice score between predicted and target binary segmentation masks.
 
     Args:
-        pred (torch.Tensor): predicted segmentation mask with shape (batch_size, num_channels, height, width)
-        target (torch.Tensor): target segmentation mask with shape (batch_size, num_channels, height, width)
-        smooth (float, optional): smoothing factor to zero error, default: 1.0.
+        pred (torch.Tensor): predicted segmentation mask with shape (batch_size, height, width)
+        target (torch.Tensor): target segmentation mask with shape (batch_size, height, width)
 
     Returns:
         float: the Dice score between pred and target
-
     """
-    pflat = pred.view(-1)
-    tflat = target.view(-1)
-    intersection = (pflat * tflat).sum()
-    return (2. * intersection + smooth) / (pflat.sum() + tflat.sum() + smooth)
+    dice = Dice(average='weighted', num_classes=3)
+    return dice(pred, target)
 
 #function to calculate the iou score when given the predicted and ground truth masks
-def iou_score(pred, target,smooth = 1.0):
+def iou_score(pred, target):
     """
-    Calculates the IOU score between predicted and target binary segmentation masks. Needs to be the same shape and order.
+    Calculates the IOU score (Jaccard Index) between predicted and target binary segmentation masks. Needs to be the same shape and order.
 
     Args:
-        pred (torch.Tensor): predicted binary mask with shape (batch_size, num_channels, height, width)
-        target (torch.Tensor): target binary mask with shape (batch_size, num_channels, height, width)
-        smooth (float, optional): smoothing factor to zero error, default: 1.0.
+        pred (torch.Tensor): predicted binary mask with shape (batch_size, height, width)
+        target (torch.Tensor): target binary mask with shape (batch_size, height, width)
 
     Returns:
         float: the IOU score between pred and target given binary masks.
 
     """
-    pflat = pred.view(-1)
-    tflat = target.view(-1)
-    intersection = (pflat * tflat).sum()
-    return (intersection + smooth) / (pflat.sum() + tflat.sum() - intersection + smooth)
+    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'weighted')
+    return iou(pred, target)
 
 def validate(model,device, samples,true_binary):
     """
@@ -75,8 +68,7 @@ def validate(model,device, samples,true_binary):
     
     model = model.to(device)
     samples = samples.to(device)
-    pred = torch.round(model.forward(samples))
-    print(pred.shape,samples.shape,true_binary.shape)
+    pred = torch.argmax(model.forward(samples),axis=1)
     dice = dice_score(pred, true_binary)
     iou = iou_score(pred, true_binary)
     return dice.item(), iou.item()
@@ -107,12 +99,10 @@ def eval_model(model_path,device, testset):
     print("{} |  Dice: {} |  IOU: {} ".format(model_path[:-3],dice,iou))
 
 
-
-
 if __name__ == "__main__":
     model = Res_U_Net()
     #load in the model
-    paths = ['model_k_0.1.pt','model_k_0.2.pt','model_k_0.3.pt','model_k_0.4.pt','model_k_0.5.pt','model_k_0.6.pt','model_k_0.7.pt','model_k_0.8.pt','model_k_0.9.pt','model_k_1.0.pt']
+    paths = ['model_k_0.1.pt','model_k_0.2.pt','model_k_0.3.pt','model_k_0.4.pt','model_k_0.5.pt','model_k_0.6.pt','model_k_0.7.pt','model_k_0.8.pt','model_k_0.9.pt','model_k_1.0.pt','model_k_baseline_full.pt']
     ##load in the data - testing batches
 
     trainset, valset, testset = load_dataset()
