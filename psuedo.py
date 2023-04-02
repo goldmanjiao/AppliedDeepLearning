@@ -157,9 +157,9 @@ if __name__ == '__main__':
     
     len_labelled = int(0.8 * len(trainset))
     len_unlabelled = len(trainset) - len_labelled
-    labelledset, unlabelledset = random_split(trainset, [len_labelled, len_labelled], generator=torch.Generator().manual_seed(42))
+    labelledset, unlabelledset = random_split(trainset, [len_labelled, len_unlabelled], generator=torch.Generator().manual_seed(42))
     train = train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0.2, loss_threshold=0.001, patience=10, baseline_full=True)
     
     for k in range(1,11):
-        train = train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=k/10, loss_threshold=0.001, patience=10)
+        train = train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=30,k=k/10, loss_threshold=0.001, patience=10)
   
