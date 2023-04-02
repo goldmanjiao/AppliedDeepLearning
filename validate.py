@@ -32,7 +32,7 @@ def dice_score(pred, target):
     Returns:
         float: the Dice score between pred and target
     """
-    dice = Dice(average='weighted', num_classes=3)
+    dice = Dice(average='micro', num_classes=3)
     return dice(pred, target)
 
 #function to calculate the iou score when given the predicted and ground truth masks
@@ -48,8 +48,50 @@ def iou_score(pred, target):
         float: the IOU score between pred and target given binary masks.
 
     """
-    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'weighted')
+    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'micro')
     return iou(pred, target)
+
+def precision_score(pred, target):
+    """
+    Calculates the Precision score between predicted and target binary segmentation masks.
+
+    Args:
+        pred (torch.Tensor): predicted segmentation mask with shape (batch_size, height, width)
+        target (torch.Tensor): target segmentation mask with shape (batch_size, height, width)
+
+    Returns:
+        float: the Precision score between pred and target
+    """
+    precision = Precision(task = 'multiclass', num_classes=3, average='micro')
+    return precision(pred, target)
+
+def recall_score(pred, target):
+    """
+    Calculates the Recall score between predicted and target binary segmentation masks.
+
+    Args:
+        pred (torch.Tensor): predicted segmentation mask with shape (batch_size, height, width)
+        target (torch.Tensor): target segmentation mask with shape (batch_size, height, width)
+
+    Returns:
+        float: the Recall score between pred and target
+    """
+    recall = Recall(task = 'multiclass', num_classes=3, average='micro')
+    return recall(pred, target)
+
+def f1_score(pred, target):
+    """
+    Calculates the F1 score between predicted and target binary segmentation masks.
+
+    Args:
+        pred (torch.Tensor): predicted segmentation mask with shape (batch_size, height, width)
+        target (torch.Tensor): target segmentation mask with shape (batch_size, height, width)
+
+    Returns:
+        float: the F1 score between pred and target
+    """
+    f1 = F1Score(task = 'multiclass', num_classes=3, average='micro')
+    return f1(pred, target)
 
 def validate(model,device, samples,true_binary):
     """
@@ -71,7 +113,10 @@ def validate(model,device, samples,true_binary):
     pred = torch.argmax(model.forward(samples),axis=1)
     dice = dice_score(pred, true_binary)
     iou = iou_score(pred, true_binary)
-    return dice.item(), iou.item()
+    precision = precision_score(pred,true_binary)
+    recall = recall_score(pred,true_binary)
+    f1 = f1_score(pred,true_binary)
+    return dice.item(), iou.item(), precision.item(), recall.item(), f1.item()
 
 def metrics(model,device,testset):
     model.eval()
@@ -79,14 +124,23 @@ def metrics(model,device,testset):
     testloader = DataLoader(testset, batch_size=16, num_workers=2, pin_memory=True)
     running_dice = 0.0
     running_iou = 0.0
+    running_precision = 0.0
+    running_recall = 0.0
+    running_f1 = 0.0
+
     with torch.no_grad():
-        for images, masks, labels in tqdm(testloader):
+        for i, (images, masks, labels )in enumerate(tqdm(testloader)):
             images, masks, labels = images.to(device), masks.to(device), labels.to(device)
-            dice,iou = validate(model,device,images,masks)
+            dice,iou, precision, recall, f1 = validate(model,device,images,masks)
             running_dice += dice
             running_iou += iou
+            running_precision += precision
+            running_recall += recall
+            running_f1 += f1
+
+   
     # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
-    return running_dice/len(testset),running_iou/len(testset)
+    return running_dice/len(testset),running_iou/len(testset), running_precision/len(testset), running_recall/len(testset), running_f1/len(testset)
 
 def eval_model(model_path,device, testset):
     '''
@@ -95,9 +149,9 @@ def eval_model(model_path,device, testset):
     model = Res_U_Net()
     model.load_state_dict(torch.load(model_path))
     device = device()
-    dice,iou = metrics(model,device,testset)
-    print("{} |  Dice: {} |  IOU: {} ".format(model_path[:-3],dice,iou))
 
+    dice, iou, precision, recall, f1 = metrics(model,device,testset)
+    print("{} |  Dice: {} |  IOU: {} | Precision: {} | Recall: {} | F1: {} ".format(model_path[:-3],dice,iou, precision, recall, f1))
 
 if __name__ == "__main__":
     model = Res_U_Net()
