@@ -81,29 +81,60 @@ def validate(model,device, samples,true_binary):
     iou = iou_score(pred, true_binary)
     return dice.item(), iou.item()
 
+def metrics(model,device,testset):
+    model.eval()
+    model.to(device)
+    testloader = DataLoader(testset, batch_size=16, num_workers=2, pin_memory=True)
+    running_dice = 0.0
+    running_iou = 0.0
+    with torch.no_grad():
+        for images, masks, labels in tqdm(testloader):
+            images, masks, labels = images.to(device), masks.to(device), labels.to(device)
+            dice,iou = validate(model,device,images,masks)
+            running_dice += dice
+            running_iou += iou
+    # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
+    return running_dice/len(testset),running_iou/len(testset)
+
+def eval_model(model_path,device, testset):
+    '''
+    Evaluates the model on the test set and prints the dice and iou scores
+    '''
+    model = Res_U_Net()
+    model.load_state_dict(torch.load(model_path))
+    device = device()
+    dice,iou = metrics(model,device,testset)
+    print("{} |  Dice: {} |  IOU: {} ".format(model_path[:-3],dice,iou))
+
+
+
 
 if __name__ == "__main__":
     model = Res_U_Net()
     #load in the model
     path = 'model.pt'
-    model.load_state_dict(torch.load(path))
-    
-    
+    paths = [path]
     ##load in the data - testing batches
 
     trainset, valset, testset = load_dataset()
+    for path in paths:
+        eval_model(path,device,testset)
+
+
+
+
     #write in code example data (4d tensor of shape (batch_size, num_channels, height, width)) here for the validation functions
 
-    example_data = torch.rand(3,3,256,256)
-    example_data = example_data.type(torch.FloatTensor)
+    # example_data = torch.rand(3,3,256,256)
+    # example_data = example_data.type(torch.FloatTensor)
 
-    #write in code for the true binary mask with only values 0 or 1 (4d tensor of shape (batch_size, 1, height, width)) here for the validation functions
-    true_binary = torch.rand(3,1,256,256)
-    true_binary = true_binary.type(torch.FloatTensor)
-    true_binary = torch.round(true_binary)
-    device = device()
-    dice, iou = validate(model,device, example_data, true_binary)
-    print("Dice Score {:.3f} | IOU Score {:.3f}".format(dice, iou))
+    # #write in code for the true binary mask with only values 0 or 1 (4d tensor of shape (batch_size, 1, height, width)) here for the validation functions
+    # true_binary = torch.rand(3,1,256,256)
+    # true_binary = true_binary.type(torch.FloatTensor)
+    # true_binary = torch.round(true_binary)
+    # device = device()
+    # dice, iou = validate(model,device, example_data, true_binary)
+    # print("Dice Score {:.3f} | IOU Score {:.3f}".format(dice, iou))
 
     
 
