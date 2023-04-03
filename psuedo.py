@@ -114,7 +114,7 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
                     images, masks, labels = images.to(device), masks.to(device), labels.to(device)
                     outputs = model(images)
 
-                    unlabel_binary = torch.round(outputs)
+                    unlabel_binary = torch.argmax(outputs, dim=1)
                     confidence = torch.pow(torch.abs(outputs - unlabel_binary),2)
                     # Sum differences across all channels and pixels
                     confidence = confidence.view(confidence.size(0), -1).sum(dim=1)
