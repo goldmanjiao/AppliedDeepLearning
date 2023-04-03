@@ -5,9 +5,10 @@ from torch.utils.data import TensorDataset, DataLoader, random_split
 from tqdm import tqdm
 from torchmetrics import Dice, JaccardIndex, Precision, Recall, F1Score
 import csv
+import os
 #load in data
 
-
+dire = os.path.dirname(os.path.abspath(__file__))
 
 
 def device():
@@ -141,7 +142,7 @@ def metrics(model,device,testset):
 
    
     # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
-    return running_dice/len(testset),running_iou/len(testset), running_precision/len(testset), running_recall/len(testset), running_f1/len(testset)
+    return running_dice/len(testset/16),running_iou/len(testset/16), running_precision/len(testset/16), running_recall/len(testset/16), running_f1/len(testset/16)
 
 def eval_model(model_path,device, testset):
     '''
@@ -156,7 +157,7 @@ def eval_model(model_path,device, testset):
     
     metrics_dict = {'Dice': dice, 'IOU': iou, 'Precision': precision, 'Recall': recall, 'F1': f1 }
 
-    with open(path + '/Results/' +model_path[:-3] + ".csv", "w", newline="") as fp:
+    with open(dire + '/Results/' +model_path[:-3] + ".csv", "w", newline="") as fp:
                 # Create a writer object
                 writer = csv.DictWriter(fp, fieldnames=metrics_dict.keys())
 

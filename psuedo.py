@@ -12,19 +12,6 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torchvision.models as models
 
-# Computes DICE loss
-'''class DiceLoss(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, y_pred, y_true):
-        smooth = 1.0
-        y_true = F.interpolate(y_true, size=y_pred.size()[2:], mode='nearest')
-        intersection = (y_pred * y_true).sum(dim=[2, 3])
-        union = y_pred.sum(dim=[2, 3]) + y_true.sum(dim=[2, 3])
-        dice = (2 * intersection + smooth) / (union + smooth)
-        loss = 1 - dice.mean()
-        return loss'''
 
 def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100, k=0.1, loss_threshold=0.001, patience=10, baseline_full = False):
     def device():
