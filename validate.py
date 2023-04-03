@@ -4,6 +4,7 @@ from load_dataset import load_dataset
 from torch.utils.data import TensorDataset, DataLoader, random_split
 from tqdm import tqdm
 from torchmetrics import Dice, JaccardIndex, Precision, Recall, F1Score
+import csv
 #load in data
 
 
@@ -21,7 +22,7 @@ def device():
 
 
 ##function to calculate the dice score when given the predicted and ground truth masks
-def dice_score(pred, target):
+def dice_score(pred, target, device):
     """
     Calculates the Dice score between predicted and target binary segmentation masks.
 
@@ -32,11 +33,11 @@ def dice_score(pred, target):
     Returns:
         float: the Dice score between pred and target
     """
-    dice = Dice(average='micro', num_classes=3)
+    dice = Dice(average='micro', num_classes=3).to(device)
     return dice(pred, target)
 
 #function to calculate the iou score when given the predicted and ground truth masks
-def iou_score(pred, target):
+def iou_score(pred, target, device):
     """
     Calculates the IOU score (Jaccard Index) between predicted and target binary segmentation masks. Needs to be the same shape and order.
 
@@ -48,10 +49,10 @@ def iou_score(pred, target):
         float: the IOU score between pred and target given binary masks.
 
     """
-    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'micro')
+    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'micro').to(device)
     return iou(pred, target)
 
-def precision_score(pred, target):
+def precision_score(pred, target, device):
     """
     Calculates the Precision score between predicted and target binary segmentation masks.
 
@@ -62,10 +63,10 @@ def precision_score(pred, target):
     Returns:
         float: the Precision score between pred and target
     """
-    precision = Precision(task = 'multiclass', num_classes=3, average='micro')
+    precision = Precision(task = 'multiclass', num_classes=3, average='micro').to(device)
     return precision(pred, target)
 
-def recall_score(pred, target):
+def recall_score(pred, target, device):
     """
     Calculates the Recall score between predicted and target binary segmentation masks.
 
@@ -76,10 +77,10 @@ def recall_score(pred, target):
     Returns:
         float: the Recall score between pred and target
     """
-    recall = Recall(task = 'multiclass', num_classes=3, average='micro')
+    recall = Recall(task = 'multiclass', num_classes=3, average='micro').to(device)
     return recall(pred, target)
 
-def f1_score(pred, target):
+def f1_score(pred, target, device):
     """
     Calculates the F1 score between predicted and target binary segmentation masks.
 
@@ -90,7 +91,7 @@ def f1_score(pred, target):
     Returns:
         float: the F1 score between pred and target
     """
-    f1 = F1Score(task = 'multiclass', num_classes=3, average='micro')
+    f1 = F1Score(task = 'multiclass', num_classes=3, average='micro').to(device)
     return f1(pred, target)
 
 def validate(model,device, samples,true_binary):
@@ -111,11 +112,11 @@ def validate(model,device, samples,true_binary):
     model = model.to(device)
     samples = samples.to(device)
     pred = torch.argmax(model.forward(samples),axis=1)
-    dice = dice_score(pred, true_binary)
-    iou = iou_score(pred, true_binary)
-    precision = precision_score(pred,true_binary)
-    recall = recall_score(pred,true_binary)
-    f1 = f1_score(pred,true_binary)
+    dice = dice_score(pred, true_binary, device)
+    iou = iou_score(pred, true_binary, device)
+    precision = precision_score(pred,true_binary, device)
+    recall = recall_score(pred,true_binary, device)
+    f1 = f1_score(pred,true_binary, device)
     return dice.item(), iou.item(), precision.item(), recall.item(), f1.item()
 
 def metrics(model,device,testset):
@@ -152,7 +153,19 @@ def eval_model(model_path,device, testset):
 
     dice, iou, precision, recall, f1 = metrics(model,device,testset)
     print("{} |  Dice: {} |  IOU: {} | Precision: {} | Recall: {} | F1: {} ".format(model_path[:-3],dice,iou, precision, recall, f1))
+    
+    metrics_dict = {'Dice': dice, 'IOU': iou, 'Precision': precision, 'Recall': recall, 'F1': f1 }
 
+    with open(path + '/Results/' +model_path[:-3] + ".csv", "w", newline="") as fp:
+                # Create a writer object
+                writer = csv.DictWriter(fp, fieldnames=metrics_dict.keys())
+
+                # Write the header row
+                writer.writeheader()
+
+                # Write the data rows
+                writer.writerow(metrics_dict)
+            
 if __name__ == "__main__":
     model = Res_U_Net()
     #load in the model
