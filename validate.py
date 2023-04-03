@@ -95,7 +95,7 @@ def f1_score(pred, target, device):
     f1 = F1Score(task = 'multiclass', num_classes=3, average='micro').to(device)
     return f1(pred, target)
 
-def validate(model,device, samples,true_binary):
+def validate(device, pred,true_binary):
     """
     Validates the model by calculating the dice and iou scores for the predicted and ground truth masks.
 
@@ -110,9 +110,6 @@ def validate(model,device, samples,true_binary):
 
     """
     
-    model = model.to(device)
-    samples = samples.to(device)
-    pred = torch.argmax(model.forward(samples),axis=1)
     dice = dice_score(pred, true_binary, device)
     iou = iou_score(pred, true_binary, device)
     precision = precision_score(pred,true_binary, device)
@@ -124,25 +121,32 @@ def metrics(model,device,testset):
     model.eval()
     model.to(device)
     testloader = DataLoader(testset, batch_size=16, num_workers=2, pin_memory=True)
+    '''
     running_dice = 0.0
     running_iou = 0.0
     running_precision = 0.0
     running_recall = 0.0
     running_f1 = 0.0
-
+    '''
     with torch.no_grad():
         for i, (images, masks, labels )in enumerate(tqdm(testloader)):
             images, masks, labels = images.to(device), masks.to(device), labels.to(device)
-            dice,iou, precision, recall, f1 = validate(model,device,images,masks)
+            true = masks
+            pred = torch.argmax(model.forward(images),axis=1)
+            true.extend(pred.cpu().squeeze().tolist())
+            pred.extend(pred.cpu().squeeze().tolist())
+            '''
             running_dice += dice
             running_iou += iou
             running_precision += precision
             running_recall += recall
             running_f1 += f1
-
+            '''
+        
+        dice, iou, precision, recall, f1 = validate(model,device,images,masks)
    
     # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
-    return running_dice/(len(testset)/16),running_iou/(len(testset)/16), running_precision/(len(testset)/16), running_recall/(len(testset)/16), running_f1/(len(testset)/16)
+    return dice,iou, precision, recall, f1
 
 def eval_model(model_path,device, testset):
     '''
