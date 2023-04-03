@@ -157,6 +157,9 @@ def eval_model(model_path,device, testset):
     
     metrics_dict = {'Dice': dice, 'IOU': iou, 'Precision': precision, 'Recall': recall, 'F1': f1 }
 
+    if not os.path.exists(dire + '/Results/'):
+        os.makedirs(dire + "/Results")
+        
     with open(dire + '/Results/' +model_path[:-3] + ".csv", "w", newline="") as fp:
                 # Create a writer object
                 writer = csv.DictWriter(fp, fieldnames=metrics_dict.keys())
