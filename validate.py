@@ -142,7 +142,7 @@ def metrics(model,device,testset):
 
    
     # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
-    return running_dice/len(testset/16),running_iou/len(testset/16), running_precision/len(testset/16), running_recall/len(testset/16), running_f1/len(testset/16)
+    return running_dice/(len(testset)/16),running_iou/(len(testset)/16), running_precision/(len(testset)/16), running_recall/(len(testset)/16), running_f1/(len(testset)/16)
 
 def eval_model(model_path,device, testset):
     '''
