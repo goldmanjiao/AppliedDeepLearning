@@ -149,4 +149,5 @@ if __name__ == '__main__':
 
     for k in range(0,11):
         train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=k/10, loss_threshold=0.001, patience=5)
-        
+        if k>0:
+            continue
