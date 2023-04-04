@@ -133,10 +133,10 @@ def metrics(model,device,testset):
     with torch.no_grad():
         for i, (images, masks, labels )in enumerate(tqdm(testloader)):
             images, masks, labels = images.to(device), masks.to(device), labels.to(device)
-            true = masks
-            pred = torch.argmax(model.forward(images),axis=1)
-            true.extend(true.cpu().squeeze().tolist())
-            pred.extend(pred.cpu().squeeze().tolist())
+            y_true = masks
+            y_pred = torch.argmax(model.forward(images),axis=1)
+            true.extend(y_true.cpu().squeeze().tolist())
+            pred.extend(y_pred.cpu().squeeze().tolist())
             '''
             running_dice += dice
             running_iou += iou
