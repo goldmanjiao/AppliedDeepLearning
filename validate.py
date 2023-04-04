@@ -128,12 +128,14 @@ def metrics(model,device,testset):
     running_recall = 0.0
     running_f1 = 0.0
     '''
+    true=[]
+    pred=[]
     with torch.no_grad():
         for i, (images, masks, labels )in enumerate(tqdm(testloader)):
             images, masks, labels = images.to(device), masks.to(device), labels.to(device)
             true = masks
             pred = torch.argmax(model.forward(images),axis=1)
-            true.extend(pred.cpu().squeeze().tolist())
+            true.extend(true.cpu().squeeze().tolist())
             pred.extend(pred.cpu().squeeze().tolist())
             '''
             running_dice += dice
