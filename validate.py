@@ -100,13 +100,16 @@ def validate(device, pred,true_binary):
     Validates the model by calculating the dice and iou scores for the predicted and ground truth masks.
 
     Args:
-        model (torch.nn.Module): the model to be validated
-        example_data (torch.Tensor): the example data to be used for validation
         device (torch.device): the device to be used for validation
+        pred (torch.Tensor): predicted segmentation mask with shape (batch_size, height, width)
+        target (torch.Tensor): target segmentation mask with shape (batch_size, height, width)
 
     Returns:
-        float: the dice score
-        float: the iou score
+        float: the Dice score between pred and target
+        float: the IOU score between pred and target given binary masks.
+        float: the Precision score between pred and target
+        float: the Recall score between pred and target
+        float: the F1 score between pred and target
 
     """
     
