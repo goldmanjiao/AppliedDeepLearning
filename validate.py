@@ -144,8 +144,9 @@ def metrics(model,device,testset):
             running_recall += recall
             running_f1 += f1
             '''
-        
-        dice, iou, precision, recall, f1 = validate(device,images,masks)
+        true = torch.tensor(true).to(device)
+        pred = torch.tensor(pred).to(device)
+        dice, iou, precision, recall, f1 = validate(device,pred,true)
    
     # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
     return dice,iou, precision, recall, f1
