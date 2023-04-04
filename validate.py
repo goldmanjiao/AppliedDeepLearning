@@ -145,7 +145,7 @@ def metrics(model,device,testset):
             running_f1 += f1
             '''
         
-        dice, iou, precision, recall, f1 = validate(model,device,images,masks)
+        dice, iou, precision, recall, f1 = validate(device,images,masks)
    
     # print("Dice: {} |  IOU: {} ".format(running_dice/len(testset),running_iou/len(testset)))
     return dice,iou, precision, recall, f1
