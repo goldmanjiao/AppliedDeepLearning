@@ -147,7 +147,6 @@ if __name__ == '__main__':
     labelledset, unlabelledset= random_split(trainset, [len_labelled, len_labelled], generator=torch.Generator().manual_seed(42))
     #train(trainset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0, loss_threshold=0.001, patience=10, baseline_full=True)
 
-    for k in range(1,11):
-        #train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=k/10, loss_threshold=0.001, patience=5)
-        continue
-    train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=0, loss_threshold=0.001, patience=5)
+    for k in range(0,11):
+        train(labelledset, valset, unlabelledset, model=Res_U_Net(), batch_size=4, epochs=10,k=k/10, loss_threshold=0.001, patience=5)
+        
