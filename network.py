@@ -117,8 +117,8 @@ class Res_U_Net(nn.Module):
         #define final layer
         self.final_layer = nn.Sequential(nn.Conv2d(in_channels=init_ch, out_channels=out_ch, 
                                                    kernel_size=(1,1), stride=1, 
-                                                   padding='same', bias=True),
-                                         nn.Sigmoid())
+                                                   padding='same', bias=True)
+                                         )
         
         
 
@@ -149,7 +149,7 @@ class Res_U_Net(nn.Module):
             
         # decoders: resize output of up-sampling then add to skip connection, then up-sample
         for s, dec in zip(reversed(skips), self.decoders):
-            x = CenterCrop(size=(s.shape[2],s.shape[3]))(x)
+            x = CenterCrop(size=(s.shape[2],s.shape[3]))(x) + s
             x = dec(x)
             
         # final layer
