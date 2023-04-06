@@ -50,7 +50,7 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
         else:
             combinedset = ConcatDataset([labelledset, subset_unlabelled])
             trainloader = DataLoader(combinedset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=False)
-            subset_unlabelled = TensorDataset(torch.empty(0), torch.empty(0), torch.empty(0))
+            subset_unlabelled = [TensorDataset(torch.empty(0), torch.empty(0), torch.empty(0))]
 
         print(f'Epoch {epoch+1}')
         model.train()
@@ -93,8 +93,8 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
         model.eval()
         if k > 0:
             with torch.no_grad():
-                # criterion_pseudo = nn.CrossEntropyLoss(reduction='none') #changed None to 'none'
-                criterion_pseudo = nn.CrossEntropyLoss() 
+                criterion_pseudo = nn.CrossEntropyLoss(reduction='none') 
+                # criterion_pseudo = nn.CrossEntropyLoss() 
                 # unlabelled subset
                 subset_unlabelled = [TensorDataset(torch.empty(0), torch.empty(0), torch.empty(0))]
                 confidences = torch.empty(0)
@@ -102,12 +102,14 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
                     images, masks, labels = images.to(device), masks.to(device), labels.to(device)
                     outputs = model(images)
 
-                    unlabel_binary = torch.argmax(outputs, dim=1)
-                    unlabel_binary = unlabel_binary.unsqueeze(1)
-                    confidence = criterion_pseudo(outputs, unlabel_binary)
+                    unlabel_binary_indices = torch.argmax(outputs, dim=1)
+                    # unlabel_binary = torch.argmax(outputs, dim=1) 
+                    # unlabel_binary = unlabel_binary.unsqueeze(1)
+                    # confidence = criterion_pseudo(outputs, unlabel_binary) 
+                    confidence = criterion_pseudo(outputs, unlabel_binary_indices)
                     # confidence = torch.pow(torch.abs(outputs - unlabel_binary),2)
                     # Sum differences across all channels and pixels
-                    # confidence = confidence.view(confidence.size(0), -1).sum(dim=1)
+                    confidence = confidence.view(confidence.size(0), -1).sum(dim=1)
                     confidences = torch.cat([confidences, confidence.cpu()])
                     '''
                     labelled_images = images.cpu()
@@ -137,6 +139,7 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
                     '''
                 confidences_argsort = torch.argsort(confidences)[:k]
                 subset_unlabelled = Subset(unlabelled_set, confidences_argsort)
+                
 
     
 
