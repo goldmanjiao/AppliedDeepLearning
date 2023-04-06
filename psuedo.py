@@ -14,6 +14,27 @@ import torchvision.models as models
 
 
 def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100, k=0.1, loss_threshold=0.001, patience=10, UB = False):
+
+    """
+    This function trains a given variant of the model
+
+     Args:
+        labelledset: Segment of the training set with groundtruth labels
+        valset: labelled validation set
+        unlabelledset: Segment of the training set with unlabelled examples
+        model: Network architecture to train
+        batch_size: examples per minibatch
+        epochs: number of epochs
+        k: threshold percentage for proportion pseudolabelled examples to feed back into training set
+        loss_threshold: threshold for early stopping, with early stopping if validation loss > best_val_loss - loss_threshold
+        patience: number of epochs beyond which early stopping can occur
+        UB: if true, trains on entire labelled training set
+
+    Returns:
+        None
+    
+    """
+
     def device():
         if torch.backends.mps.is_available():
             device = torch.device("mps") 

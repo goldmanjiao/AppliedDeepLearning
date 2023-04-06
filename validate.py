@@ -6,7 +6,7 @@ from tqdm import tqdm
 from torchmetrics import Dice, JaccardIndex, Precision, Recall, F1Score
 import csv
 import os
-#load in data
+
 
 dire = os.path.dirname(os.path.abspath(__file__))
 
@@ -124,13 +124,7 @@ def metrics(model,device,testset):
     model.eval()
     model.to(device)
     testloader = DataLoader(testset, batch_size=16, num_workers=2, pin_memory=True)
-    '''
-    running_dice = 0.0
-    running_iou = 0.0
-    running_precision = 0.0
-    running_recall = 0.0
-    running_f1 = 0.0
-    '''
+ 
     true=[]
     pred=[]
     with torch.no_grad():
@@ -140,13 +134,7 @@ def metrics(model,device,testset):
             y_pred = torch.argmax(model.forward(images),axis=1)
             true.extend(y_true.cpu().squeeze().tolist())
             pred.extend(y_pred.cpu().squeeze().tolist())
-            '''
-            running_dice += dice
-            running_iou += iou
-            running_precision += precision
-            running_recall += recall
-            running_f1 += f1
-            '''
+        
         true = torch.tensor(true).to(device)
         pred = torch.tensor(pred).to(device)
         dice, iou, precision, recall, f1 = validate(device,pred,true)
@@ -190,21 +178,6 @@ if __name__ == "__main__":
     for path in paths:
         eval_model(path,device,testset)
 
-
-
-
-    #write in code example data (4d tensor of shape (batch_size, num_channels, height, width)) here for the validation functions
-
-    # example_data = torch.rand(3,3,256,256)
-    # example_data = example_data.type(torch.FloatTensor)
-
-    # #write in code for the true binary mask with only values 0 or 1 (4d tensor of shape (batch_size, 1, height, width)) here for the validation functions
-    # true_binary = torch.rand(3,1,256,256)
-    # true_binary = true_binary.type(torch.FloatTensor)
-    # true_binary = torch.round(true_binary)
-    # device = device()
-    # dice, iou = validate(model,device, example_data, true_binary)
-    # print("Dice Score {:.3f} | IOU Score {:.3f}".format(dice, iou))
 
     
 
