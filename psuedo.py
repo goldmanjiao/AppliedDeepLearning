@@ -112,7 +112,7 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
                     confidences = torch.cat([confidences, confidence.cpu()])
                 
                 # Ranks pseudolabels for all unlabelled examples and selects top k percent
-                confidences_argsort = torch.argsort(confidences)[:k]
+                confidences_argsort = torch.argsort(confidences, descending=True)[:k]
                 subset_unlabelled = Subset(unlabelled_set, confidences_argsort)
                 
 
