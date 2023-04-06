@@ -34,7 +34,7 @@ def dice_score(pred, target, device):
     Returns:
         float: the Dice score between pred and target
     """
-    dice = Dice(average='micro', num_classes=3).to(device)
+    dice = Dice(average='macro', num_classes=3).to(device)
     return dice(pred, target)
 
 #function to calculate the iou score when given the predicted and ground truth masks
@@ -50,7 +50,7 @@ def iou_score(pred, target, device):
         float: the IOU score between pred and target given binary masks.
 
     """
-    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'micro').to(device)
+    iou = JaccardIndex(task = 'multiclass', num_classes=3, average = 'macro').to(device)
     return iou(pred, target)
 
 def precision_score(pred, target, device):
@@ -64,7 +64,7 @@ def precision_score(pred, target, device):
     Returns:
         float: the Precision score between pred and target
     """
-    precision = Precision(task = 'multiclass', num_classes=3, average='micro').to(device)
+    precision = Precision(task = 'multiclass', num_classes=3, average='macro').to(device)
     return precision(pred, target)
 
 def recall_score(pred, target, device):
@@ -78,7 +78,7 @@ def recall_score(pred, target, device):
     Returns:
         float: the Recall score between pred and target
     """
-    recall = Recall(task = 'multiclass', num_classes=3, average='micro').to(device)
+    recall = Recall(task = 'multiclass', num_classes=3, average='macro').to(device)
     return recall(pred, target)
 
 def f1_score(pred, target, device):
@@ -92,7 +92,7 @@ def f1_score(pred, target, device):
     Returns:
         float: the F1 score between pred and target
     """
-    f1 = F1Score(task = 'multiclass', num_classes=3, average='micro').to(device)
+    f1 = F1Score(task = 'multiclass', num_classes=3, average='macro').to(device)
     return f1(pred, target)
 
 def validate(device, pred,true_binary):
