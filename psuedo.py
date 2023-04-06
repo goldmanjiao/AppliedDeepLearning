@@ -26,7 +26,7 @@ def train(labelledset, valset, unlabelled_set, model, batch_size=16, epochs=100,
     # Takes k most confident pseudolabels
     if baseline_full:
         k = 0
-        k_pct = 'baseline_full'
+        k_pct = 'UB'
     else:
         k_pct = k
         k = int(len(unlabelled_set)*k)
